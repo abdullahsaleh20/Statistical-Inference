@@ -1,0 +1,75 @@
+---
+title: "Statistical Inference Course Project 1"
+author: "Chuk Yong"
+date: "5 September 2016"
+output: 
+  word_document
+
+---
+## Coursera Statistical Inference Course Project Part 1: Simulation Exercise
+
+Instructions
+In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponentials. You should
+
+1. Show the sample mean and compare it to the theoretical mean of the distribution.
+2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+3. Show that the distribution is approximately normal.
+In point 3, focus on the difference between the distribution of a large collection of random exponentials and the distribution of a large collection of averages of 40 exponentials.
+
+Set the parameters for our sample
+```{r}
+set.seed(123)
+nSim <- 1000 # number of simulations
+n <- 40 # sample size
+lambda <- 0.2 # lambda for the exponential distribution
+```
+Generate 1000 simulations, each with 40 samples
+```{r}
+# generate n*nSim number of random number
+data <- rexp(n*nSim, lambda)  
+dataMatrix <- matrix(ncol = n, data) # put them in a matrix
+```
+Caculate the mean and variance of the 1000 simulation
+```{r}
+# calculate the mean of each row and put them in data frame for ggplot
+sampleMean <- data.frame(sampleMean = apply(dataMatrix, 1,mean))
+# calculate the mean and variance
+mean_sampleMean <- mean(sampleMean$sampleMean)
+var_sampleMean <- var(sampleMean$sampleMean)
+```
+Calculate the mean and variance of Normal Distribution 
+```{r}
+# for the theoretical mean, std and variance
+meanTheo <- 1/lambda
+stdTheo <- (1/lambda)/sqrt(n)
+varTheo <- stdTheo^2
+```
+Print out the mean and variance of Simulation and Normal for comparison
+```{r}
+#Companring sample and theoretical mean, variance
+cat("Sample Mean:", mean_sampleMean, "\nTheoretical Mean:",meanTheo)
+cat("Sample Variance:", var_sampleMean, "\nTheoretical Variance:", varTheo )
+```
+As we can see, the mean and variance of the simluation are very close to that of a Normal Distribution.  That anwer the question 1 & 2 and also confirms the Central Limit Theorem.
+
+
+
+```{r echo=FALSE, message=FALSE}
+library(ggplot2)
+cols <- c("Sample Distribution" ="blue","Normal Distribution" ="red", "Bar"="grey")
+g <- ggplot(sampleMean) + aes(x=sampleMean) + 
+  geom_histogram(aes(y = ..density..),binwidth = 0.2, colour = "grey", fill="white") +
+  geom_density(alpha = 0.4, fill = "#0072B2", aes(colour = "Sample Distribution")) + 
+  geom_vline(aes(xintercept = mean_sampleMean), colour = "blue", linetype = "dashed", size = 0.8) +
+  stat_function(fun = dnorm, args = list(mean = meanTheo, sd = stdTheo), aes(colour = "Normal Distribution")) +
+  geom_vline(aes(xintercept = meanTheo), colour = "red") +
+  labs(title = "Sample Means vs Normal Distribution", x = "Means", y = "Density") +
+  scale_colour_manual(name = "Legend", values = cols) +
+  theme(legend.key = element_rect(linetype = 0, colour = "grey", fill = 0)) +
+  theme(legend.position = c(0.9, 0.8), legend.background = element_rect(color = "black", fill = "grey90", size = 1, linetype = "solid"))
+
+g
+```
+
